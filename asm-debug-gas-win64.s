@@ -41,10 +41,14 @@
 .si: .string "si: %u, 0x%04hx | "
 .sil: .string "sil: %u, 0x%02hhx\n"
 
+.rspv: .quad 0
+
 .rsp: .string "rsp: %llu, 0x%016llx | "
 .esp: .string "esp: %u, 0x%08x | "
 .sp: .string "sp: %u, 0x%04hx | "
 .spl: .string "sip: %u, 0x%02hhx\n"
+
+.rbpv: .quad 0
 
 .rbp: .string "rbp: %llu, 0x%016llx | "
 .ebp: .string "ebp: %u, 0x%08x | "
@@ -93,74 +97,102 @@
 
 .eflags: .string "eflags: "
 
+.stack: .string "working stack, from 0x%llx to 0x%llx :\n"
+.stdesc16: .string "16 bits blocks\naddr\t\thex\tdec\thigh\tlow\t  bin\n"
+.stdesc32: .string "32 bits blocks\naddr\t\thex\t\tdec\t\t  bin\n"
+.stdesc64: .string "64 bits blocks\naddr\t\thex\t\t\tdec\t\t\t  bin\n"
+.stackaddr16: .string "0x%llx\t0x%04hx\t%05hu:\t%03hhu\t%03hhu\t| "
+.stackaddr32: .string "0x%llx\t0x%08x\t%010u\t| "
+.stackaddr64: .string "0x%llx\t0x%016llx\t%020llu\t| "
+
+.st0: .string "st0: %.33Lf | "
+.st0i: .string "%llu - %hu | "
+.st0ix: .string "0x%016llx - 0x%04hx\n"
+
+.st1: .string "st1: %.33Lf | "
+.st1i: .string "%llu - %hu | "
+.st1ix: .string "0x%016llx - 0x%04hx\n"
+
+.st2: .string "st2: %.33Lf | "
+.st2i: .string "%llu - %hu | "
+.st2ix: .string "0x%016llx - 0x%04hx\n"
+
+.st3: .string "st3: %.33Lf | "
+.st3i: .string "%llu - %hu | "
+.st3ix: .string "0x%016llx - 0x%04hx\n"
+
+.st4: .string "st4: %.33Lf | "
+.st4i: .string "%llu - %hu | "
+.st4ix: .string "0x%016llx - 0x%04hx\n"
+
+.st5: .string "st5: %.33Lf | "
+.st5i: .string "%llu - %hu | "
+.st5ix: .string "0x%016llx - 0x%04hx\n"
+
+.st6: .string "st6: %.33Lf | "
+.st6i: .string "%llu - %hu | "
+.st6ix: .string "0x%016llx - 0x%04hx\n"
+
+.st7: .string "st7: %.33Lf | "
+.st7i: .string "%llu - %hu | "
+.st7ix: .string "0x%016llx - 0x%04hx\n"
+
 .section .text
-# prints the infos about a register; takes a quadword and prints it in binary
+# prints the infos about a register; takes a value and its size and prints it in binary
 print_bin:
     pushq %rbp
     movq %rsp, %rbp
     subq $64, %rsp
 
-    movq %rcx, %rax
-    movq $2, -8(%rbp)
-    movl $70, -12(%rbp)
-    movl $0, -24(%rbp)
+    movq %rcx, -8(%rbp)
+    movl %edx, -12(%rbp)
+    movl $8, -16(%rbp)
 
-    movq %rax, -20(%rbp)
-    movl $72, %ecx
+    xorq %rdx, %rdx
+    movl -12(%rbp), %eax
+    divl -16(%rbp)
+    decl %eax
+    addl %eax, -12(%rbp)
+
+    xorq %rdx, %rdx
+    movl -12(%rbp), %ecx
     call malloc
     movq %rax, %rbx
 
-    movq $71, %rcx
-    movb $0, (%rbx, %rcx, 1)
+    movzx -12(%rbp), %rax
+    movb $0, (%rbx, %rax, 1)
 
     leaq .binary(%rip), %rcx
     call __mingw_printf
 
-    .LBIN:
-        cmpl $8, -24(%rbp)
-        jne .SK
-            cmpl $0, -12(%rbp)
-            je .SK
-                movl -12(%rbp), %ecx
-                cmpl $35, %ecx
-                jne .DEF2
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .DEND
-                .DEF2:
-                cmpl $53, %ecx
-                jne .DEF3
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .DEND
-                .DEF3:
-                cmpl $62, %ecx
-                jne .DEF
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .DEND
-                .DEF:
-                movb $45, (%rbx, %rcx, 1)
-                .DEND:
-                decl -12(%rbp)
-                movl $0, -24(%rbp)
-                cmpl $0, -12(%rbp)
-                jge .LBIN
-        .SK:
-        incl -24(%rbp)
+    movq $2, -24(%rbp)
+    movl $0, -28(%rbp)
+    decl -12(%rbp)
+    .L0:
+        cmpl $8, -28(%rbp)
+        jne .L2
+            movzx -12(%rbp), %rcx
+            movb $32, (%rbx, %rcx, 1)
+            movl $0, -28(%rbp)
+            decl -12(%rbp)
+        .L2:
+        incl -28(%rbp)
         xorq %rdx, %rdx
-        movq -20(%rbp), %rax
-        divq -8(%rbp)
-        movq %rax, -20(%rbp)
+        movq -8(%rbp), %rax
+        divq -24(%rbp)
+        movq %rax, -8(%rbp)
         cmpq $0, %rdx
-        jne .P1
+        jne .L1
             movzx -12(%rbp), %rcx
             movb $48, (%rbx, %rcx, 1)
-        jmp .PE
-        .P1:
+            jmp .LE
+        .L1:
             movzx -12(%rbp), %rcx
             movb $49, (%rbx, %rcx, 1)
-        .PE:
+        .LE:
     decl -12(%rbp)
     cmpl $0, -12(%rbp)
-    jge .LBIN
+    jge .L0
 
     movq %rbx, %rcx
     call __mingw_printf
@@ -169,151 +201,7 @@ print_bin:
     call __mingw_printf
 
     movq %rbx, %rcx
-    call free
-
-    addq $64, %rsp
-    popq %rbp
-    ret
-
-print_bin32:
-    pushq %rbp
-    movq %rsp, %rbp
-    subq $64, %rsp
-
-    movq %rcx, %rax
-    movq $2, -8(%rbp)
-    movl $34, -12(%rbp)
-    movl $0, -24(%rbp)
-
-    movq %rax, -20(%rbp)
-    movl $36, %ecx
-    call malloc
-    movq %rax, %rbx
-
-    movq $35, %rcx
-    movb $0, (%rbx, %rcx, 1)
-
-    leaq .binary(%rip), %rcx
-    call __mingw_printf
-
-    .2LBIN:
-        cmpl $8, -24(%rbp)
-        jne .2SK
-            cmpl $0, -12(%rbp)
-            je .2SK
-                movl -12(%rbp), %ecx
-                cmpl $26, %ecx
-                jne .2DEF3
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .2DEND
-                .2DEF3:
-                cmpl $17, %ecx
-                jne .2DEF
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .2DEND
-                .2DEF:
-                movb $45, (%rbx, %rcx, 1)
-                .2DEND:
-                decl -12(%rbp)
-                movl $0, -24(%rbp)
-                cmpl $0, -12(%rbp)
-                jge .2LBIN
-        .2SK:
-        incl -24(%rbp)
-        xorq %rdx, %rdx
-        movq -20(%rbp), %rax
-        divq -8(%rbp)
-        movq %rax, -20(%rbp)
-        cmpq $0, %rdx
-        jne .2P1
-            movzx -12(%rbp), %rcx
-            movb $48, (%rbx, %rcx, 1)
-        jmp .2PE
-        .2P1:
-            movzx -12(%rbp), %rcx
-            movb $49, (%rbx, %rcx, 1)
-        .2PE:
-    decl -12(%rbp)
-    cmpl $0, -12(%rbp)
-    jge .2LBIN
-
-    movq %rbx, %rcx
-    call __mingw_printf
-
-    leaq .binclose(%rip), %rcx
-    call __mingw_printf
-
-    movq %rbx, %rcx
-    call free
-
-    addq $64, %rsp
-    popq %rbp
-    ret
-
-print_bin16:
-    pushq %rbp
-    movq %rsp, %rbp
-    subq $64, %rsp
-
-    movq %rcx, %rax
-    movq $2, -8(%rbp)
-    movl $16, -12(%rbp)
-    movl $0, -24(%rbp)
-
-    movq %rax, -20(%rbp)
-    movl $18, %ecx
-    call malloc
-    movq %rax, %rbx
-
-    movq $17, %rcx
-    movb $0, (%rbx, %rcx, 1)
-
-    leaq .binary(%rip), %rcx
-    call __mingw_printf
-
-    .3LBIN:
-        cmpl $8, -24(%rbp)
-        jne .3SK
-            cmpl $0, -12(%rbp)
-            je .3SK
-                movl -12(%rbp), %ecx
-                cmpl $8, %ecx
-                jne .3DEF
-                    movb $92, (%rbx, %rcx, 1)
-                    jmp .3DEND
-                .3DEF:
-                movb $45, (%rbx, %rcx, 1)
-                .3DEND:
-                decl -12(%rbp)
-                movl $0, -24(%rbp)
-                cmpl $0, -12(%rbp)
-                jge .3LBIN
-        .3SK:
-        incl -24(%rbp)
-        xorq %rdx, %rdx
-        movq -20(%rbp), %rax
-        divq -8(%rbp)
-        movq %rax, -20(%rbp)
-        cmpq $0, %rdx
-        jne .3P1
-            movzx -12(%rbp), %rcx
-            movb $48, (%rbx, %rcx, 1)
-        jmp .3PE
-        .3P1:
-            movzx -12(%rbp), %rcx
-            movb $49, (%rbx, %rcx, 1)
-        .3PE:
-    decl -12(%rbp)
-    cmpl $0, -12(%rbp)
-    jge .3LBIN
-
-    movq %rbx, %rcx
-    call __mingw_printf
-
-    leaq .binclose(%rip), %rcx
-    call __mingw_printf
-
-    movq %rbx, %rcx
+    xorq %rdx, %rdx
     call free
 
     addq $64, %rsp
@@ -323,13 +211,13 @@ print_bin16:
 # debugger function, requires no argument
 .globl asm_debug
 asm_debug:
+    movq %rsp, .rspv(%rip)
+    movq %rbp, .rbpv(%rip)
+    
     pushq %rbp
-    pushq %rsp
     movq %rsp, %rbp
-    subq $1024, %rsp
+    subq $256, %rsp
 
-    popq -8(%rbp)
-    popq -16(%rbp)
     movq %rax, -24(%rbp)
     movq %rbx, -32(%rbp)
     movq %rcx, -40(%rbp)
@@ -367,6 +255,8 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -397,6 +287,8 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -427,6 +319,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -457,6 +350,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -483,6 +377,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -509,13 +404,14 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
     call __mingw_printf
 
     # RSP debug
-    movq -8(%rbp), %rbx
+    movq .rspv(%rip), %rbx
 
     movq %rbx, %rdx
     movq %rbx, %r8
@@ -535,13 +431,14 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
     call __mingw_printf
 
     # RBP debug
-    movq -16(%rbp), %rbx
+    movq .rbpv(%rip), %rbx
 
     movq %rbx, %rdx
     movq %rbx, %r8
@@ -561,6 +458,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -587,6 +485,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -613,6 +512,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -639,6 +539,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -665,6 +566,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -691,6 +593,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -717,6 +620,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -743,6 +647,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -769,6 +674,7 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
+    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -784,14 +690,300 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
-    call print_bin32
+    movl $32, %edx
+    call print_bin
 
     leaq .divider(%rip), %rcx
     call __mingw_printf
 
-    popq %rax
-    pushq %rax
+    # stack debug
+    movq .rbpv(%rip), %rdx
+    movq .rspv(%rip), %r8
+    leaq .stack(%rip), %rcx
+    call __mingw_printf
 
-    addq $1024, %rsp
+    # 16b stack debug
+    leaq .stdesc16(%rip), %rcx
+    call __mingw_printf
+
+    movq .rbpv(%rip), %rbx
+    subq $2, %rbx
+    .SP160:
+        movq %rbx, %rdx
+        movw (%rbx), %r8w
+        movw (%rbx), %r9w
+        movb 1(%rbx), %cl
+        movb %cl, 32(%rsp)
+        movb (%rbx), %cl
+        movb %cl, 40(%rsp)
+        leaq .stackaddr16(%rip), %rcx
+        call __mingw_printf
+        pushq %rbx
+        movsxw (%rbx), %rcx
+        movl $16, %edx
+        call print_bin
+        popq %rbx
+    subq $2, %rbx
+    cmpq %rbx, .rspv(%rip)
+    jle .SP160
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # 32b stack debug
+    leaq .stdesc32(%rip), %rcx
+    call __mingw_printf
+
+    movq .rbpv(%rip), %rbx
+    subq $4, %rbx
+    .SP320:
+        movq %rbx, %rdx
+        movl (%rbx), %r8d
+        movl (%rbx), %r9d
+        leaq .stackaddr32(%rip), %rcx
+        call __mingw_printf
+        pushq %rbx
+        movsxd (%rbx), %rcx
+        movl $32, %edx
+        call print_bin
+        popq %rbx
+    subq $4, %rbx
+    cmpq %rbx, .rspv(%rip)
+    jle .SP320
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # 64b stack debug
+    leaq .stdesc64(%rip), %rcx
+    call __mingw_printf
+
+    movq .rbpv(%rip), %rbx
+    subq $8, %rbx
+    .SP640:
+        movq %rbx, %rdx
+        movq (%rbx), %r8
+        movq (%rbx), %r9
+        leaq .stackaddr64(%rip), %rcx
+        call __mingw_printf
+        pushq %rbx
+        movq (%rbx), %rcx
+        movl $64, %edx
+        call print_bin
+        popq %rbx
+    subq $8, %rbx
+    cmpq %rbx, .rspv(%rip)
+    jle .SP640
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST0 debug
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st0(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st0i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st0ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST1 debug
+
+    fxch %st(1)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st1(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st1i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st1ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(1)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST2 debug
+
+    fxch %st(2)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st2(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st2i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st2ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(2)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST3 debug
+
+    fxch %st(3)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st3(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st3i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st3ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(3)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST4 debug
+
+    fxch %st(4)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st4(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st4i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st4ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(4)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST5 debug
+
+    fxch %st(5)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st5(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st5i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st5ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(5)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST6 debug
+
+    fxch %st(6)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st6(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st6i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st6ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(6)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    # ST7 debug
+
+    fxch %st(7)
+
+    fstpt -90(%rbp)
+    leaq -90(%rbp), %rdx
+    movq -90(%rbp), %r8
+    movl -90(%rbp), %r9d
+    leaq .st7(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st7i(%rip), %rcx
+    call __mingw_printf
+    movq -90(%rbp), %rdx
+    movw -82(%rbp), %r8w
+    leaq .st7ix(%rip), %rcx
+    call __mingw_printf
+    fldt -90(%rbp)
+
+    fxch %st(7)
+
+    leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+    movq -24(%rbp), %rax
+    movq -32(%rbp), %rbx
+    movq -40(%rbp), %rcx
+    movq -48(%rbp), %rdx
+    movq -56(%rbp), %r8
+    movq -64(%rbp), %r9
+    movq -72(%rbp), %r10
+    movq -80(%rbp), %r11
+
+    addq $256, %rsp
+    popq %rbp
     ret
     
