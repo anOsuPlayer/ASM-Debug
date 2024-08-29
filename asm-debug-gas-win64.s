@@ -101,7 +101,7 @@
 .stdesc16: .string "16 bits blocks\naddr\t\thex\tdec\thigh\tlow\t  bin\n"
 .stdesc32: .string "32 bits blocks\naddr\t\thex\t\tdec\t\t  bin\n"
 .stdesc64: .string "64 bits blocks\naddr\t\thex\t\t\tdec\t\t\t  bin\n"
-.stackaddr16: .string "0x%llx\t0x%04hx\t%05hu:\t%03hhu\t%03hhu\t| "
+.stackaddr16: .string "0x%llx\t0x%04hx\t%05hu\t[%03hhu\t%03hhu]\t| "
 .stackaddr32: .string "0x%llx\t0x%08x\t%010u\t| "
 .stackaddr64: .string "0x%llx\t0x%016llx\t%020llu\t| "
 
@@ -136,6 +136,22 @@
 .st7: .string "st7: %.33Lf | "
 .st7i: .string "%llu - %hu | "
 .st7ix: .string "0x%016llx - 0x%04hx\n"
+
+.mm0: .string "mm0: %llu, 0x%016llx\n"
+
+.mm1: .string "mm1: %llu, 0x%016llx\n"
+
+.mm2: .string "mm2: %llu, 0x%016llx\n"
+
+.mm3: .string "mm3: %llu, 0x%016llx\n"
+
+.mm4: .string "mm4: %llu, 0x%016llx\n"
+
+.mm5: .string "mm5: %llu, 0x%016llx\n"
+
+.mm6: .string "mm6: %llu, 0x%016llx\n"
+
+.mm7: .string "mm7: %llu, 0x%016llx\n"
 
 .section .text
 # prints the infos about a register; takes a value and its size and prints it in binary
@@ -256,7 +272,6 @@ asm_debug:
 
     movq %rbx, %rcx
     movl $64, %edx
-    movl $64, %edx
     call print_bin
 
     leaq .divider(%rip), %rcx
@@ -287,7 +302,6 @@ asm_debug:
     call __mingw_printf
 
     movq %rbx, %rcx
-    movl $64, %edx
     movl $64, %edx
     call print_bin
 
@@ -972,6 +986,130 @@ asm_debug:
     fxch %st(7)
 
     leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM0 debug
+
+	movq %mm0, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm0(%rip), %rcx
+    call __mingw_printf
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM1 debug
+
+	movq %mm1, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm1(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM2 debug
+
+	movq %mm2, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm2(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM3 debug
+
+	movq %mm3, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm3(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM4 debug
+
+	movq %mm4, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm4(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM5 debug
+
+	movq %mm5, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm5(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM6 debug
+
+	movq %mm6, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm6(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
+    call __mingw_printf
+
+	# MM7 debug
+
+	movq %mm7, %rbx
+
+    movq %rbx, %rdx
+    movq %rbx, %r8
+    leaq .mm7(%rip), %rcx
+    call __mingw_printf
+
+	movq %rbx, %rcx
+    movl $64, %edx
+    call print_bin
+
+	leaq .divider(%rip), %rcx
     call __mingw_printf
 
     movq -24(%rbp), %rax
